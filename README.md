@@ -53,7 +53,7 @@ Saves the configuration table to a JSON file.
 
 ### `config("reset")`
 
-Resets the configuration to its original values. This method is added to the config table after calling `carboneum.load()`.
+Resets the configuration to its original values. Methods is added to the config table after calling `carboneum.load()`.
 
 ## Notes
 
