@@ -1,6 +1,6 @@
 --[[
 
-	CarboneumJsonConfig Library v.240804
+	CarboneumJsonConfig Library v.241024
 	by Corenale for kekwait.su
 	
 	used libs:
@@ -20,6 +20,7 @@
 		• if cdata can't be saved as table, it saves as base64 string
 	
 	update log:
+		v241024 • fixed cdata types mismatch problem when loading config
 		v240804 • moved from parseback to reflect
 		v240716 • fixed creating new cdata (i'm stupud) (thx https://www.blast.hk/members/481726/ for find this)
 		v240709 • fixed script path qualifier
@@ -265,7 +266,11 @@ function carboneum.load(path, table, original)
 							ffi.copy(ffi.cast("void*", target[k]), str, #str)
 						else
 							if not v[2]:match("(%*)") then
-								target[k] = ffi.new(v[2], v[3])
+								if tostring(ffi.typeof(target[k])):match("^ctype<(.+)>$") == v[2] then
+									target[k] = ffi.new(v[2], v[3])
+								else
+									-- why we need to do something? (fix for devs bruh)
+								end
 							else
 								print("CarboneumJsonConfig(load): trying load var into unexisted pointer struct")
 							end
