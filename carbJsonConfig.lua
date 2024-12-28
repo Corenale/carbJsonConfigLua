@@ -20,6 +20,7 @@
 		• if cdata can't be saved as table, it saves as base64 string
 	
 	update log:
+		v241227 • fixed creating cdata from json (i'm stupud x2) (thx https://www.blast.hk/members/481726/ for find this)
 		v241220 • short path fix for Windows (if you run the script just with "luajit shit.lua", the root folder will be the folder with the executable file) -- bruh pasted from todo
 		v241127 • fixed cdata types mismatch problem when loading config x2 (thx https://www.blast.hk/members/125042/)
 		v241024 • fixed cdata types mismatch problem when loading config
@@ -57,18 +58,8 @@ local json = (function() local v0=false;local v1=false;local v2="json";local v3,
 local base64 = (function() local v0={};local v1=_G.bit32 and _G.bit32.extract ;if  not v1 then if _G.bit then local v66,v67,v68=_G.bit.lshift,_G.bit.rshift,_G.bit.band;function v1(v75,v76,v77) return v68(v67(v75,v76),v66(1,v77) -1 );end elseif (_G._VERSION=="Lua 5.1") then function v1(v87,v88,v89) local v90=0;local v91=2^v88 ;for v92=0,v89-1  do local v93=v91 + v91 ;if ((v87%v93)>=v91) then v90=v90 + (2^v92) ;end v91=v93;end return v90;end else v1=load([[return function( v, from, width ) return ( v >> from ) & ((1 << width) - 1) end]])();end end v0.makeencoder=function(v10,v11,v12) local v13={};for v35,v36 in pairs({[0]="A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9",v10 or "+" ,v11 or "/" ,v12 or "=" }) do v13[v35]=v36:byte();end return v13;end;v0.makedecoder=function(v14,v15,v16) local v17={};for v38,v39 in pairs(v0.makeencoder(v14,v15,v16)) do v17[v39]=v38;end return v17;end;local v4=v0.makeencoder();local v5=v0.makedecoder();local v6,v7=string.char,table.concat;v0.encode=function(v18,v19,v20) v19=v19 or v4 ;local v21,v22,v23={},1, #v18;local v24=v23%3 ;local v25={};for v41=1,v23-v24 ,3 do local v42,v43,v44=v18:byte(v41,v41 + 2 );local v45=(v42 * 65536) + (v43 * 256) + v44 ;local v46;if v20 then v46=v25[v45];if  not v46 then v46=v6(v19[v1(v45,18,6)],v19[v1(v45,12,6)],v19[v1(v45,6,6)],v19[v1(v45,0,6)]);v25[v45]=v46;end else v46=v6(v19[v1(v45,18,6)],v19[v1(v45,12,6)],v19[v1(v45,6,6)],v19[v1(v45,0,6)]);end v21[v22]=v46;v22=v22 + 1 ;end if (v24==2) then local v55,v56=v18:byte(v23-1 ,v23);local v57=(v55 * 65536) + (v56 * 256) ;v21[v22]=v6(v19[v1(v57,18,6)],v19[v1(v57,12,6)],v19[v1(v57,6,6)],v19[64]);elseif (v24==1) then local v78=v18:byte(v23) * 65536 ;v21[v22]=v6(v19[v1(v78,18,6)],v19[v1(v78,12,6)],v19[64],v19[64]);end return v7(v21);end;v0.decode=function(v26,v27,v28) v27=v27 or v5 ;local v29="[^%w%+%/%=]";if v27 then local v59,v60;for v70,v71 in pairs(v27) do if (v71==62) then v59=v70;elseif (v71==63) then v60=v70;end end v29=("[^%%w%%%s%%%s%%=]"):format(v6(v59),v6(v60));end v26=v26:gsub(v29,"");local v30=v28 and {} ;local v31,v32={},1;local v33= #v26;local v34=((v26:sub( -2)=="==") and 2) or ((v26:sub( -1)=="=") and 1) or 0 ;for v48=1,((v34>0) and (v33-4)) or v33 ,4 do local v49,v50,v51,v52=v26:byte(v48,v48 + 3 );local v53;if v28 then local v72=(v49 * 16777216) + (v50 * 65536) + (v51 * 256) + v52 ;v53=v30[v72];if  not v53 then local v85=(v27[v49] * 262144) + (v27[v50] * 4096) + (v27[v51] * 64) + v27[v52] ;v53=v6(v1(v85,16,8),v1(v85,8,8),v1(v85,0,8));v30[v72]=v53;end else local v74=(v27[v49] * 262144) + (v27[v50] * 4096) + (v27[v51] * 64) + v27[v52] ;v53=v6(v1(v74,16,8),v1(v74,8,8),v1(v74,0,8));end v31[v32]=v53;v32=v32 + 1 ;end if (v34==1) then local v61,v62,v63=v26:byte(v33-3 ,v33-1 );local v64=(v27[v61] * 262144) + (v27[v62] * 4096) + (v27[v63] * 64) ;v31[v32]=v6(v1(v64,16,8),v1(v64,8,8));elseif (v34==2) then local v80,v81=v26:byte(v33-3 ,v33-2 );local v82=(v27[v80] * 262144) + (v27[v81] * 4096) ;v31[v32]=v6(v1(v82,16,8));end return v7(v31);end;return v0; end)()
 local reflect = (function() local v0=require("ffi");local v1=require("bit");local v2={};local v3,v4;local v5,v6;local function v7(v27) if (v27~=0) then local v84=v0.cast("uint32_t*",v27);return v0.string(v84 + 4 ,v84[3]);end end local v8=rawget(v0,"typeinfo");v8=v8 or function(v28) local v29=(v3 or v4()).tab[v28];return {info=v29.info,size=(v1.bnot(v29.size)~=0) and v29.size ,sib=(v29.sib~=0) and v29.sib ,name=v7(v29.name)};end ;local function v9(v30) return tonumber(tostring(v30):match("%x*$"),16);end function v4() v0.cdef([[ typedef struct CType { uint32_t info; uint32_t size; uint16_t sib; uint16_t next; uint32_t name; } CType; typedef struct CTState { CType *tab; uint32_t top; uint32_t sizetab; void *L; void *g; void *finalizer; void *miscmap; } CTState; ]]);local v31=coroutine.create(function(v80,...) return v80(...);end);local v32=(v0.abi("gc64") and "uint64_t") or "uint32_t" ;local v33=v0.typeof(v32   .. "*" );local v34=v0.cast(v33,v0.cast(v33,v9(v31))[2]);local v35=v0.cast(v32,v0.cast("const char*","__index"));local v36=0;while math.abs(tonumber(v34[v36] -v35 ))>64  do v36=v36 + 1 ;end local v37,v38=coroutine.resume(v31,function(v81) for v85=v36-3 ,v36-20 , -1 do if (v34[v85]==v81) then return v85;end end end,v9(v31));if (v37 and v38) then for v97=v38 + 2 ,v36-1  do local v98=v34[v97];if ((v98~=0) and (v1.band(v98,3)==0)) then v3=v0.cast("CTState*",v98);if (v0.cast(v33,v3.g)==v34) then return v3;end end end else for v99=v36-1 ,0, -1 do local v100=v34[v99];if ((v100~=0) and (v1.band(v100,3)==0)) then v3=v0.cast("CTState*",v100);if (v0.cast(v33,v3.g)==v34) then return v3;end end end end end function v6() local v39={};v39[0]=v39;local v41=v0.cast("uintptr_t",(v3 or v4()).miscmap);if v0.abi("gc64") then local v86=v0.cast("uint64_t**",v9(v39))[2];v86[0]=v1.bor(v1.lshift(v1.rshift(v86[0],47),47),v41);else local v88=v0.cast("uint32_t*",v9(v39))[2];v0.cast("uint32_t*",v88)[(v0.abi("le") and 0) or 1 ]=v0.cast("uint32_t",v41);end v5=v39[0];return v5;end local v10={[0]={"int","","size",false,{134217728,"bool"},{67108864,"float","subwhat"},{33554432,"const"},{16777216,"volatile"},{8388608,"unsigned"},{4194304,"long"}},{"struct","","size",true,{33554432,"const"},{16777216,"volatile"},{8388608,"union","subwhat"},{1048576,"vla"}},{"ptr","element_type","size",false,{33554432,"const"},{16777216,"volatile"},{8388608,"ref","subwhat"}},{"array","element_type","size",false,{134217728,"vector"},{67108864,"complex"},{33554432,"const"},{16777216,"volatile"},{1048576,"vla"}},{"void","","size",false,{33554432,"const"},{16777216,"volatile"}},{"enum","type","size",true},{"func","return_type","nargs",true,{8388608,"vararg"},{4194304,"sse_reg_params"}},{"typedef","element_type","",false},{"attrib","type","value",true},{"field","type","offset",true},{"bitfield","","offset",true,{134217728,"bool"},{33554432,"const"},{16777216,"volatile"},{8388608,"unsigned"}},{"constant","type","value",true,{33554432,"const"}},{"extern","CID","",true},{"kw","TOK","size"}};local v11={element_type=true,return_type=true,value_type=true,type=true};local v12={};for v42,v43 in ipairs(v10) do local v44=v43[1];local v45={__index={}};v12[v44]=v45;end local v13={[0]=function(v47,v48) error("TODO: CTA_NONE");end,function(v49,v50) error("TODO: CTA_QUAL");end,function(v51,v52) v51=2^v51.value ;v52.alignment=v51;v52.attributes.align=v51;end,function(v55,v56) v56.transparent=true;v56.attributes.subtype=v56.typeid;end,function(v60,v61) v61.sym_name=v60.name;end,function(v64,v65) error("TODO: CTA_BAD");end};local v14={[0]="cdecl","thiscall","fastcall","stdcall"};local function v15(v66) local v67=v8(v66);local v68=v1.rshift(v67.info,28);local v69=v10[v68];local v70=v69[1];local v71=setmetatable({what=v70,typeid=v66,name=v67.name},v12[v70]);for v82=5, #v69 do if (v1.band(v67.info,v69[v82][1])~=0) then if (v69[v82][3]=="subwhat") then v71.what=v69[v82][2];else v71[v69[v82][2]]=true;end end end if (v68<=5) then v71.alignment=v1.lshift(1,v1.band(v1.rshift(v67.info,16),15));elseif (v70=="func") then v71.convention=v14[v1.band(v1.rshift(v67.info,16),3)];end if (v69[2]~="") then local v91=v69[2];local v92=v1.band(v67.info,65535);if v11[v91] then if (v92==0) then v92=nil;else v92=v15(v92);end end v71[v91]=v92;end if (v69[3]~="") then local v94=v69[3];v71[v94]=v67.size or ((v94=="size") and "none") ;end if (v70=="attrib") then local v96=v13[v1.band(v1.rshift(v67.info,16),255)];if v71.type then local v107=v71.type;v107.attributes={};v96(v71,v107);v107.typeid=v71.typeid;v71=v107;else v71.CTA=v96;end elseif (v70=="bitfield") then v71.offset=v71.offset + (v1.band(v67.info,127)/8) ;v71.size=v1.band(v1.rshift(v67.info,8),127)/8 ;v71.type={what="int",bool=v71.bool,const=v71.const,volatile=v71.volatile,unsigned=v71.unsigned,size=v1.band(v1.rshift(v67.info,16),127)};v71.bool,v71.const,v71.volatile,v71.unsigned=nil;end if v69[4] then while v67.sib do local v101=v8(v67.sib);if (v10[v1.rshift(v101.info,28)][1]~="attrib") then break;end if (v1.band(v101.info,65535)~=0) then break;end local v102=v15(v67.sib);v102:CTA(v71);v67=v101;end end return v71;end local function v16(v72,v73) repeat local v83=v8(v73.typeid);if  not v83.sib then return;end v73=v15(v83.sib);until v73.what~="attrib"  return v73;end local function v17(v74) while v74.attributes do v74=v15(v74.attributes.subtype or v8(v74.typeid).sib );end return v16,nil,v74;end v12.struct.__index.members=v17;v12.func.__index.arguments=v17;v12.enum.__index.values=v17;local function v21(v75,v76) local v77=tonumber(v76);if v77 then for v103 in v17(v75) do if (v77==1) then return v103;end v77=v77-1 ;end else for v104 in v17(v75) do if (v104.name==v76) then return v104;end end end end v12.struct.__index.member=v21;v12.func.__index.argument=v21;v12.enum.__index.value=v21;v2.typeof=function(v78) return v15(tonumber(v0.typeof(v78)));end;v2.getmetatable=function(v79) return (v5 or v6())[ -tonumber(v0.typeof(v79))];end;return v2; end)()
 
-local function pathFixer(path)
-	-- local debugLevel = 2
-	-- local temp = debug.getinfo(1, "S").source
-	-- while temp do
-		-- if debug.getinfo(debugLevel, "S").source ~= temp then
-			-- temp = nil
-		-- else
-			-- debugLevel = debugLevel + 1
-		-- end
-	-- end
-	-- local debugLevel = debug.getinfo(3) and 3 or 2 -- 3 if required, 2 if minified
-	
+local shortPath = ""
+do
 	local function getCDPath()
 		if jit.os == "Windows" then
 			local testpath = ffi.new("char[256]")
@@ -84,20 +75,38 @@ local function pathFixer(path)
 	local function getScriptPath()
 		local i = 1
 		while debug.getinfo(i, "S") do
+			-- print(debug.getinfo(i, "S").source)
 			i = i + 1
 		end
-		return debug.getinfo(i-2, "S").source
-	endЫ
+		local ret = debug.getinfo(i-1, "S").source
+		return ret ~= "=[C]" and ret or debug.getinfo(i-2, "S").source
+	end
+	
+	local scriptPath = getScriptPath()
+	if scriptPath:find("/") or scriptPath:find("\\") then
+		shortPath = getScriptPath():sub(2):gsub("(\\)", "/"):match("(.*/)") -- if not full path
+	else
+		shortPath = getCDPath():gsub("(\\)", "/").."/" -- if not full path
+	end
+end
+
+local function pathFixer(path)
+	-- local debugLevel = 2
+	-- local temp = debug.getinfo(1, "S").source
+	-- while temp do
+		-- if debug.getinfo(debugLevel, "S").source ~= temp then
+			-- temp = nil
+		-- else
+			-- debugLevel = debugLevel + 1
+		-- end
+	-- end
+	-- local debugLevel = debug.getinfo(3) and 3 or 2 -- 3 if required, 2 if minified
+	
+
 	
 	local pth = path:gsub("(\\)", "/")
 	if jit.os == "Windows" and not pth:find("^(%a:/)") then -- on linux everything is fine
-		-- pth = debug.getinfo(debugLevel, "S").source:sub(2):gsub("(\\)", "/"):match("(.*/)")..pth -- if not full path
-		local scriptPath = getScriptPath()
-		if scriptPath:find("/") or scriptPath:find("\\") then
-			pth = getScriptPath():sub(2):gsub("(\\)", "/"):match("(.*/)")..pth -- if not full path
-		else
-			pth = getCDPath():gsub("(\\)", "/").."/"..pth -- if not full path
-		end
+		pth = shortPath..pth
 	end
 
 	return pth
@@ -308,7 +317,7 @@ function carboneum.load(path, table, original)
 						end
 						
 					else
-						if orig_type == "cdata" then
+						if orig_type == "cdata" or orig_type == "nil" then
 							if target[k] and tostring(ffi.typeof(target[k])):match("^ctype<(.+)>$") == v[2] then
 								local temp = ffi.new(v[2]:gsub("(%*)", ""), v[3])
 								local str = ffi.string(temp, ffi.sizeof(temp))
@@ -327,6 +336,7 @@ function carboneum.load(path, table, original)
 							end
 						else
 							print(("CarboneumJsonConfig(load): data types mismatch: j/t | %s/%s"):format(type(v[2]), orig_type))
+							-- print(v[2])
 						end
 						
 					end
@@ -349,6 +359,7 @@ function carboneum.load(path, table, original)
 end
 
 function carboneum.save(path, table)
+	-- print(pathFixer(path))
 	local file = io.open(pathFixer(path), "w")
 	
 	local good = preptable2json(table)
