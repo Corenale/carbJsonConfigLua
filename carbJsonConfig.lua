@@ -244,7 +244,7 @@ local function preptable2json(orig, copies, isKey)
 function carboneum.load(path, table, original)
 	
 	local original = original or preptable2json(table)
-	local mt = {}
+	local mt = getmetatable(table) or {} -- fixed poop
 	mt.__call = function(self, str)
 		if str == "reset" then
 			configreset(path, table, original)
