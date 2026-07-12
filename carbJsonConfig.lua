@@ -268,7 +268,13 @@ function carboneum.load(path, table, original)
 		return
 	end
 	
-	local jsonTable = json.decode(filestr)
+	local jsonTable, _ , errmsg = json.decode(filestr)
+	if jsonTable == nil or type(jsonTable) ~= "table" then
+		print(("CarboneumJsonConfig(load): failed to parse JSON in '%s': %s")
+			:format(path, errmsg or "decoded value is not a table"))
+		carboneum.save(path, table) -- fallback to default config
+		return
+	end
 	file:close()
 	
 	function table_merge(target, source) 
